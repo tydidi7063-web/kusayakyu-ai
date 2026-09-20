@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061a4d">
 <link rel="manifest" href="./manifest.webmanifest?v=48">
-<title>草野球AI査定 Ver.51</title>
+<title>草野球AI査定 Ver.53</title>
 <style>
 :root{--navy:#061a4d;--blue:#086bd3;--cyan:#55e7ff;--gold:#ffc928;--panel:#eef6ff}
 *{box-sizing:border-box}
@@ -228,7 +228,7 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
   <button id="exitReadonlyMode" type="button">本体へ戻る</button>
 </div>
 
-<header class="header"><h1>草野球AI査定</h1><div class="version">Ver.51 勝負強さ追加版</div></header>
+<header class="header"><h1>草野球AI査定</h1><div class="version">Ver.53 勝負強さ追加版</div></header>
 <section class="top-actions">
 <button id="addPlayer">＋選手</button><button id="deletePlayer">選手削除</button><button id="applySeason">29選手反映</button><button id="smartImportTop">SmartScorer</button><button id="saveJson">JSON保存</button><button id="shareData">編集用データ共有</button><button id="shareReadonlyLink">閲覧リンク共有</button><button id="shareReadonly">閲覧パック共有</button><button id="openReadonlyPack">閲覧パックを開く</button><button id="teamPageBtn">チーム分析</button><button id="bestNineBtn">AIベストナイン</button><button id="loadJson">JSON読込</button>
 </section>
@@ -286,7 +286,7 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
   <button id="downloadBackup">共有できない場合：JSONを保存</button>
   <div class="share-note">iPhoneではLINE、メール、AirDrop、ファイル保存などを選べます。</div>
 <div class="readonly-link-box" id="readonlyLinkBox" hidden>
-  <label>作成した閲覧専用リンク</label><div class="link-warning">Ver.45の新しいリンクを作り直してください。URL内の「viewer.html?v=51」が新しい閲覧画面の目印です。</div>
+  <label>作成した閲覧専用リンク</label><div class="link-warning">Ver.45の新しいリンクを作り直してください。URL内の「viewer.html?v=53」が新しい閲覧画面の目印です。</div>
   <textarea id="readonlyLinkText" readonly></textarea>
   <button id="copyReadonlyLink" type="button">リンクをコピー</button><button id="testReadonlyLink" type="button">この端末でリンクを確認</button>
 </div>
@@ -345,6 +345,16 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
 <div class="bottom"><div class="bottom-inner"><button data-go="#detailCard">選手</button><button data-go=".abilities">能力</button><button data-go=".field">守備</button><button data-go="#rankingCard">順位</button><button data-go=".top-actions">メニュー</button></div></div>
 <input id="jsonFile" type="file" accept=".json,application/json" hidden><input id="readonlyPackFile" type="file" accept=".ksp,application/octet-stream,application/json" hidden><input id="smartPdfFile" type="file" accept=".pdf,application/pdf" hidden>
 <script>
+
+function ayuzawaTiebreak(a,b){
+  const na=String((a&&a.name)||"").replace(/[ 　]/g,"");
+  const nb=String((b&&b.name)||"").replace(/[ 　]/g,"");
+  const aa=na.includes("鮎沢"), bb=nb.includes("鮎沢");
+  if(aa&&!bb)return -1;
+  if(!aa&&bb)return 1;
+  return 0;
+}
+
 function abilityGrade(v){v=+v||0;if(v>=90)return"S";if(v>=80)return"A";if(v>=70)return"B";if(v>=60)return"C";if(v>=50)return"D";return"E"}
 
 const STORAGE="kusayakyu_ai_v20";
@@ -728,7 +738,7 @@ async function gzipText(text){
 
 function ensureViewerVersion(url){
   const viewerUrl=new URL(url);
-  viewerUrl.searchParams.set("v","51");
+  viewerUrl.searchParams.set("v","53");
   return viewerUrl.toString();
 }
 
@@ -742,7 +752,7 @@ async function createReadonlyShareUrl(){
     : bytesToBase64Url(new TextEncoder().encode(json));
 
   const mode=compressed ? "gz" : "raw";
-  const url=new URL("./viewer.html?v=51",location.href);
+  const url=new URL("./viewer.html?v=53",location.href);
   url.hash=`v41:${mode}:${encoded}`;
   return ensureViewerVersion(url.toString());
 }
@@ -966,6 +976,24 @@ if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js?v=48").
     }catch(e){console.warn(e)}
   }
 })();
+
+function lockAbilityEditing(){
+  const abilityKeys=new Set(["contact","power","clutch","discipline","speed","arm","fielding","catching"]);
+  document.querySelectorAll("input,select,textarea").forEach(el=>{
+    const key=el.dataset.ability||el.dataset.key||el.name||"";
+    const txt=((el.closest("label,.ability-row,.stat-row,.card")||{}).textContent||"");
+    if(abilityKeys.has(key)||/(ミート|パワー|勝負強さ|選球眼|走力|肩力|守備力|捕球)/.test(txt)){
+      if(el.type==="number"||el.type==="range"||abilityKeys.has(key)){
+        el.disabled=true;
+        el.readOnly=true;
+        el.setAttribute("aria-readonly","true");
+      }
+    }
+  });
+}
+new MutationObserver(lockAbilityEditing).observe(document.documentElement,{subtree:true,childList:true});
+document.addEventListener("DOMContentLoaded",lockAbilityEditing);
+setTimeout(lockAbilityEditing,0);
 </script>
 <div style="display:none">勝負強さ：得点圏打率65%＋打点生産35%、打席数で信頼度補正</div></body>
 </html>
