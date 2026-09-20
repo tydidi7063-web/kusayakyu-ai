@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061a4d">
 <link rel="manifest" href="./manifest.webmanifest?v=48">
-<title>草野球AI査定 Ver.54</title>
+<title>草野球AI査定 Ver.55</title>
 <style>
 :root{--navy:#061a4d;--blue:#086bd3;--cyan:#55e7ff;--gold:#ffc928;--panel:#eef6ff}
 *{box-sizing:border-box}
@@ -228,7 +228,7 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
   <button id="exitReadonlyMode" type="button">本体へ戻る</button>
 </div>
 
-<header class="header"><h1>草野球AI査定</h1><div class="version">Ver.54 勝負強さ追加版</div></header>
+<header class="header"><h1>草野球AI査定</h1><div class="version">Ver.55 勝負強さ追加版</div></header>
 <section class="top-actions">
 <button id="addPlayer">＋選手</button><button id="deletePlayer">選手削除</button><button id="applySeason">29選手反映</button><button id="smartImportTop">SmartScorer</button><button id="saveJson">JSON保存</button><button id="shareData">編集用データ共有</button><button id="shareReadonlyLink">閲覧リンク共有</button><button id="shareReadonly">閲覧パック共有</button><button id="openReadonlyPack">閲覧パックを開く</button><button id="teamPageBtn">チーム分析</button><button id="bestNineBtn">AIベストナイン</button><button id="loadJson">JSON読込</button>
 </section>
@@ -286,7 +286,7 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
   <button id="downloadBackup">共有できない場合：JSONを保存</button>
   <div class="share-note">iPhoneではLINE、メール、AirDrop、ファイル保存などを選べます。</div>
 <div class="readonly-link-box" id="readonlyLinkBox" hidden>
-  <label>作成した閲覧専用リンク</label><div class="link-warning">Ver.45の新しいリンクを作り直してください。URL内の「viewer.html?v=54」が新しい閲覧画面の目印です。</div>
+  <label>作成した閲覧専用リンク</label><div class="link-warning">Ver.45の新しいリンクを作り直してください。URL内の「viewer.html?v=55」が新しい閲覧画面の目印です。</div>
   <textarea id="readonlyLinkText" readonly></textarea>
   <button id="copyReadonlyLink" type="button">リンクをコピー</button><button id="testReadonlyLink" type="button">この端末でリンクを確認</button>
 </div>
@@ -345,6 +345,25 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
 <div class="bottom"><div class="bottom-inner"><button data-go="#detailCard">選手</button><button data-go=".abilities">能力</button><button data-go=".field">守備</button><button data-go="#rankingCard">順位</button><button data-go=".top-actions">メニュー</button></div></div>
 <input id="jsonFile" type="file" accept=".json,application/json" hidden><input id="readonlyPackFile" type="file" accept=".ksp,application/octet-stream,application/json" hidden><input id="smartPdfFile" type="file" accept=".pdf,application/pdf" hidden>
 <script>
+
+function tiedOverallRank(sortedRows,index,getScore){
+  if(index<=0)return 1;
+  const cur=Number(getScore(sortedRows[index]));
+  const prev=Number(getScore(sortedRows[index-1]));
+  return cur===prev ? tiedOverallRank(sortedRows,index-1,getScore) : index+1;
+}
+
+
+function competitionRanksByScore(rows, scoreGetter){
+  let prev=null, rank=0;
+  return rows.map((row,i)=>{
+    const score=Number(scoreGetter(row));
+    if(i===0 || score!==prev) rank=i+1;
+    prev=score;
+    return {row,rank};
+  });
+}
+
 
 function ayuzawaTiebreak(a,b){
   const na=String((a&&a.name)||"").replace(/[ 　]/g,"");
@@ -738,7 +757,7 @@ async function gzipText(text){
 
 function ensureViewerVersion(url){
   const viewerUrl=new URL(url);
-  viewerUrl.searchParams.set("v","54");
+  viewerUrl.searchParams.set("v","55");
   return viewerUrl.toString();
 }
 
@@ -752,7 +771,7 @@ async function createReadonlyShareUrl(){
     : bytesToBase64Url(new TextEncoder().encode(json));
 
   const mode=compressed ? "gz" : "raw";
-  const url=new URL("./viewer.html?v=54",location.href);
+  const url=new URL("./viewer.html?v=55",location.href);
   url.hash=`v41:${mode}:${encoded}`;
   return ensureViewerVersion(url.toString());
 }
