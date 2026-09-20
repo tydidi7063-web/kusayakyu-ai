@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061a4d">
 <link rel="manifest" href="./manifest.webmanifest?v=48">
-<title>草野球AI査定 Ver.56</title>
+<title>草野球AI査定 Ver.57</title>
 <style>
 :root{--navy:#061a4d;--blue:#086bd3;--cyan:#55e7ff;--gold:#ffc928;--panel:#eef6ff}
 *{box-sizing:border-box}
@@ -228,7 +228,7 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
   <button id="exitReadonlyMode" type="button">本体へ戻る</button>
 </div>
 
-<header class="header"><h1>草野球AI査定</h1><div class="version">Ver.56 勝負強さ追加版</div></header>
+<header class="header"><h1>草野球AI査定</h1><div class="version">Ver.57 勝負強さ追加版</div></header>
 <section class="top-actions">
 <button id="addPlayer">＋選手</button><button id="deletePlayer">選手削除</button><button id="applySeason">29選手反映</button><button id="smartImportTop">SmartScorer</button><button id="saveJson">JSON保存</button><button id="shareData">編集用データ共有</button><button id="shareReadonlyLink">閲覧リンク共有</button><button id="shareReadonly">閲覧パック共有</button><button id="openReadonlyPack">閲覧パックを開く</button><button id="teamPageBtn">チーム分析</button><button id="bestNineBtn">AIベストナイン</button><button id="loadJson">JSON読込</button>
 </section>
@@ -286,7 +286,7 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
   <button id="downloadBackup">共有できない場合：JSONを保存</button>
   <div class="share-note">iPhoneではLINE、メール、AirDrop、ファイル保存などを選べます。</div>
 <div class="readonly-link-box" id="readonlyLinkBox" hidden>
-  <label>作成した閲覧専用リンク</label><div class="link-warning">Ver.45の新しいリンクを作り直してください。URL内の「viewer.html?v=56」が新しい閲覧画面の目印です。</div>
+  <label>作成した閲覧専用リンク</label><div class="link-warning">Ver.45の新しいリンクを作り直してください。URL内の「viewer.html?v=57」が新しい閲覧画面の目印です。</div>
   <textarea id="readonlyLinkText" readonly></textarea>
   <button id="copyReadonlyLink" type="button">リンクをコピー</button><button id="testReadonlyLink" type="button">この端末でリンクを確認</button>
 </div>
@@ -568,7 +568,6 @@ function renderRanking(){
  rankGuide.textContent=qualifiedKeys.includes(rankingKey)
    ?rankingKey==="rispAvg"?`規定打席 ${q}打席以上かつ得点圏成績のある選手のみ表示`:`規定打席 ${q}打席以上の選手のみ表示`
    :"規定打席未到達者も表示。同じ数値は同順位です。選手をタップすると能力画面へ移動します。";
- const top=list.slice(0,10);
  const rateKeys=["avg","obp","slg","ops","rispAvg"];
  const normalizedValue=p=>{
    const raw=rankValue(p,rankingKey);
@@ -578,11 +577,14 @@ function renderRanking(){
  };
  let previousValue=null;
  let previousRank=0;
- rankList.innerHTML=top.map((p,index)=>{
+ const ranked=list.map((p,index)=>{
    const value=normalizedValue(p);
    const rank=(previousValue!==null && value===previousValue) ? previousRank : index+1;
    previousValue=value;
    previousRank=rank;
+   return {p,rank,value};
+ }).filter(x=>x.rank<=10);
+ rankList.innerHTML=ranked.map(({p,rank,value})=>{
 
    const rankClass=rank===1?"rank-gold":rank===2?"rank-silver":rank===3?"rank-bronze":"";
    const shown=rateKeys.includes(rankingKey)
@@ -763,7 +765,7 @@ async function gzipText(text){
 
 function ensureViewerVersion(url){
   const viewerUrl=new URL(url);
-  viewerUrl.searchParams.set("v","56");
+  viewerUrl.searchParams.set("v","57");
   return viewerUrl.toString();
 }
 
@@ -777,7 +779,7 @@ async function createReadonlyShareUrl(){
     : bytesToBase64Url(new TextEncoder().encode(json));
 
   const mode=compressed ? "gz" : "raw";
-  const url=new URL("./viewer.html?v=56",location.href);
+  const url=new URL("./viewer.html?v=57",location.href);
   url.hash=`v41:${mode}:${encoded}`;
   return ensureViewerVersion(url.toString());
 }
