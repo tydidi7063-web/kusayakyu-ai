@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#061a4d">
 <link rel="manifest" href="./manifest.webmanifest?v=48">
-<title>草野球AI査定 Ver.63</title>
+<title>草野球AI査定 Ver.64</title>
 <style>
 :root{--navy:#061a4d;--blue:#086bd3;--cyan:#55e7ff;--gold:#ffc928;--panel:#eef6ff}
 *{box-sizing:border-box}
@@ -238,7 +238,7 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
   <button id="exitReadonlyMode" type="button">本体へ戻る</button>
 </div>
 
-<header class="header"><h1>草野球AI査定</h1><div class="version">Ver.63 勝負強さ追加版</div></header>
+<header class="header"><h1>草野球AI査定</h1><div class="version">Ver.64 勝負強さ追加版</div></header>
 <section class="top-actions">
 <button id="addPlayer">＋選手</button><button id="deletePlayer">選手削除</button><button id="applySeason">29選手反映</button><button id="smartImportTop">SmartScorer</button><button id="saveJson">JSON保存</button><button id="shareData">編集用データ共有</button><button id="shareReadonlyLink">閲覧リンク共有</button><button id="shareReadonly">閲覧パック共有</button><button id="openReadonlyPack">閲覧パックを開く</button><button id="teamPageBtn">チーム分析</button><button id="bestNineBtn">AIベストナイン</button><button id="loadJson">JSON読込</button>
 </section>
@@ -301,7 +301,7 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
   <button id="downloadBackup">共有できない場合：JSONを保存</button>
   <div class="share-note">iPhoneではLINE、メール、AirDrop、ファイル保存などを選べます。</div>
 <div class="readonly-link-box" id="readonlyLinkBox" hidden>
-  <label>作成した閲覧専用リンク</label><div class="link-warning">Ver.45の新しいリンクを作り直してください。URL内の「viewer.html?v=63」が新しい閲覧画面の目印です。</div>
+  <label>作成した閲覧専用リンク</label><div class="link-warning">Ver.45の新しいリンクを作り直してください。URL内の「viewer.html?v=64」が新しい閲覧画面の目印です。</div>
   <textarea id="readonlyLinkText" readonly></textarea>
   <button id="copyReadonlyLink" type="button">リンクをコピー</button><button id="testReadonlyLink" type="button">この端末でリンクを確認</button>
 </div>
@@ -451,25 +451,35 @@ function current(){return data.players.find(p=>p.id===data.selected)||data.playe
 function clamp(v){return Math.max(1,Math.min(100,Math.round(v)))}
 function grade(v){v=+v||0;return v>=90?"S":v>=80?"A":v>=70?"B":v>=60?"C":v>=50?"D":"E"}
 function overall(p){
- const fieldOverall=Math.round(Object.values(p.abilities).reduce((a,b)=>a+Number(b||0),0)/7);
+ // 基礎総合値は従来の打撃・走塁・守備能力から算出
+ const base=Math.round(Object.values(p.abilities).reduce((a,b)=>a+Number(b||0),0)/7);
 
- // Defensive suitability bonus: use the best registered fielding-position grade.
- // S/A/B/C/D/E/G => +8/+7/+6/+5/+4/+3/+0
- const defenseMap={S:8,A:7,B:6,C:5,D:4,E:3,F:1,G:0,"なし":0};
+ // 守備適性は「できるポジションが多いこと」と「最高適性」の両方を評価するが、
+ // 能力値本体と二重評価になりすぎないよう最大 +4 に抑える。
+ const gradeScore={S:6,A:5,B:4,C:3,D:2,E:1,F:0,G:0,"なし":0};
  const fieldPositions=["捕手","一塁手","二塁手","三塁手","遊撃手","左翼手","中堅手","右翼手"];
- const defenseBonus=Math.max(0,...fieldPositions.map(pos=>defenseMap[p.grades?.[pos]]??0));
+ const vals=fieldPositions.map(pos=>gradeScore[p.grades?.[pos]]??0).filter(v=>v>0);
+ const best=vals.length?Math.max(...vals):0;
+ const versatility=Math.min(3,Math.max(0,vals.length-1));
+ const defenseBonus=Math.min(4,Math.round(best*.45+versatility*.35));
 
+ // 投手は野手総合を土台に「二刀流/投手価値」を +1〜+6。
+ // 球速だけでなく制球・スタミナ・役割適性を合わせて評価。
  let pitcherBonus=0;
  if(p.pitcher){
    const q=p.pitcher;
    const vel=parseFloat(String(q.velocity||"").replace(/[^\d.]/g,""))||120;
-   const velScore=Math.max(40,Math.min(100,Math.round(40+(vel-110)*1.5)));
-   const roleMap={S:100,A:85,B:75,C:65,D:55,E:45,F:35,G:25,"なし":25};
-   const roleScore=Math.max(...[q.starter,q.reliever,q.closer].map(x=>roleMap[x]??25));
-   const pitching=Math.round(velScore*.30+(Number(q.control)||40)*.30+(Number(q.stamina)||40)*.25+roleScore*.15);
-   pitcherBonus=Math.max(2,Math.min(10,Math.round((pitching-40)/6)));
+   const velScore=Math.max(35,Math.min(100,Math.round(35+(vel-110)*1.55)));
+   const roleMap={S:100,A:88,B:76,C:64,D:52,E:42,F:32,G:22,"なし":20};
+   const roleScore=Math.max(...[q.starter,q.reliever,q.closer].map(x=>roleMap[x]??20));
+   const pitching=Math.round(velScore*.25+(Number(q.control)||40)*.35+(Number(q.stamina)||40)*.25+roleScore*.15);
+   pitcherBonus=Math.max(1,Math.min(6,Math.round((pitching-40)/10)));
  }
- return Math.max(40,Math.min(100,fieldOverall+defenseBonus+pitcherBonus));
+
+ // 高能力帯は加点を少し圧縮。90台後半～100が乱発しない設計。
+ const raw=base+defenseBonus+pitcherBonus;
+ const balanced=raw<=88 ? raw : Math.round(88+(raw-88)*0.55);
+ return Math.max(40,Math.min(99,balanced));
 }
 function calc(p){
  const s=p.stats,ab=+s.ab||0,h=+s.hits||0,pa=+s.pa||0,d2=+s.doubles||0,d3=+s.triples||0,hr=+s.hr||0,bb=+s.walks||0;
@@ -812,7 +822,7 @@ async function gzipText(text){
 
 function ensureViewerVersion(url){
   const viewerUrl=new URL(url);
-  viewerUrl.searchParams.set("v","63");
+  viewerUrl.searchParams.set("v","64");
   return viewerUrl.toString();
 }
 
@@ -826,7 +836,7 @@ async function createReadonlyShareUrl(){
     : bytesToBase64Url(new TextEncoder().encode(json));
 
   const mode=compressed ? "gz" : "raw";
-  const url=new URL("./viewer.html?v=63",location.href);
+  const url=new URL("./viewer.html?v=64",location.href);
   url.hash=`v41:${mode}:${encoded}`;
   return ensureViewerVersion(url.toString());
 }
