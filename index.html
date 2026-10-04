@@ -228,7 +228,7 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
   <button id="exitReadonlyMode" type="button">本体へ戻る</button>
 </div>
 
-<header class="header"><h1>草野球AI査定</h1><div class="version">Ver.70 描画停止修正版</div></header>
+<header class="header"><h1>草野球AI査定</h1><div class="version">Ver.72 再構築修正版</div></header>
 <section class="top-actions">
 <button id="addPlayer">＋選手</button><button id="deletePlayer">選手削除</button><button id="applySeason">29選手反映</button><button id="smartImportTop">SmartScorer</button><button id="saveJson">JSON保存</button><button id="shareData">編集用データ共有</button><button id="shareReadonlyLink">閲覧リンク共有</button><button id="shareReadonly">閲覧パック共有</button><button id="openReadonlyPack">閲覧パックを開く</button><button id="teamPageBtn">チーム分析</button><button id="bestNineBtn">AIベストナイン</button><button id="loadJson">JSON読込</button>
 </section>
@@ -286,7 +286,7 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
   <button id="downloadBackup">共有できない場合：JSONを保存</button>
   <div class="share-note">iPhoneではLINE、メール、AirDrop、ファイル保存などを選べます。</div>
 <div class="readonly-link-box" id="readonlyLinkBox" hidden>
-  <label>作成した閲覧専用リンク</label><div class="link-warning">Ver.70 描画停止修正版</div>
+  <label>作成した閲覧専用リンク</label><div class="link-warning">Ver.72 再構築修正版</div>
   <textarea id="readonlyLinkText" readonly></textarea>
   <button id="copyReadonlyLink" type="button">リンクをコピー</button><button id="testReadonlyLink" type="button">この端末でリンクを確認</button>
 </div>
@@ -508,6 +508,21 @@ function save(){if(readonlyMode)return;localStorage.setItem(STORAGE,JSON.stringi
 function current(){return data.players.find(p=>p.id===data.selected)||data.players[0]}
 function clamp(v){return Math.max(1,Math.min(100,Math.round(v)))}
 function grade(v){v=+v||0;return v>=90?"S":v>=80?"A":v>=70?"B":v>=60?"C":v>=50?"D":"E"}
+
+function calc(p){
+ const st=(p&&p.stats)||{};
+ const ab=Number(st.ab)||0, h=Number(st.hits)||0;
+ const d2=Number(st.doubles)||0, d3=Number(st.triples)||0, hr=Number(st.hr)||0;
+ const bb=Number(st.walks)||0, hbp=Number(st.hbp)||0, sac=Number(st.sac)||0;
+ const pa=Number(st.pa)||0;
+ const singles=Math.max(0,h-d2-d3-hr);
+ const tb=singles+d2*2+d3*3+hr*4;
+ const avg=ab?h/ab:0;
+ const obpDen=ab+bb+hbp+sac;
+ const obp=obpDen?(h+bb+hbp)/obpDen:(pa?(h+bb+hbp)/pa:0);
+ const slg=ab?tb/ab:0;
+ return {avg:avg,obp:obp,slg:slg,ops:obp+slg,tb:tb};
+}
 function overall(p){
  const base=Math.round(Object.values(p.abilities).reduce((a,b)=>a+Number(b||0),0)/7);
  const gradeScore={S:6,A:5,B:4,C:3,D:2,E:1,F:0,G:0,"なし":0};
@@ -995,7 +1010,7 @@ async function openReadonlyFile(file){
     enterReadonlyMode(pack);
   }catch(error){
     console.error(error);
-    alert("閲覧専用パックを開けませんでした。Ver.70 描画停止修正版");
+    alert("閲覧専用パックを開けませんでした。Ver.72 再構築修正版");
   }
 }
 
@@ -1074,7 +1089,7 @@ sharePlayerCard.onclick=()=>{
 document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>document.querySelector(b.dataset.go)?.scrollIntoView({behavior:"smooth"}));
 window.addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue=""}});
 save();render();
-if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js?v=70").catch(()=>{});
+if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js?v=72").catch(()=>{});
 
 (function(){
   const CLEAN_KEY="v51_registered_players_only_cleanup";
