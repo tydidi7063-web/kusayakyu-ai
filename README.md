@@ -1,21 +1,23 @@
-# 草野球AI査定 Ver.69 Safari表示完全修正版
+# 草野球AI査定 Ver.70 描画停止修正版
 
-今回、空欄になる実際の原因をコード上で特定して修正しました。
+今回、render() が止まる具体的な箇所を特定して修正。
 
 原因:
-index.html が playerStrip / statsGrid / field / rankTabs / rankList などの
-HTML idを、そのままJavaScript変数として利用していました。
-iPhone Safariでは id から同名グローバル変数が必ず作られるとは限らず、
-render() が最初の playerStrip で停止していました。
+Ver.69のDOM自動バインド処理が、parseSmartText() 内にある
+`let number` と `const name` を見て、HTMLの #number / #name は
+既に宣言済みだと誤判定していた。
 
-症状が一致:
-- チーム内ランキングが空
-- 打撃成績が空
-- 守備適性は背景だけでランクが空
-- 選手一覧など動的描画部分が空
+しかし render() では
+number.value = ...
+name.value = ...
+を実行するため、ここでJavaScriptが停止。
+その直後にある打撃成績、守備適性、ランキングの描画まで到達していなかった。
 
 修正:
-HTML内の 69 個の必要な要素を document.getElementById() で明示的に取得。
-Safariの暗黙グローバルに依存しない構造へ変更。
-最新成績・守備適性・投手能力・総合値バランスはVer.68から維持。
-Service Workerもv69へ更新。
+- #number を明示的に document.getElementById("number") で取得
+- #name を明示的に document.getElementById("name") で取得
+- 末尾に残っていた STORAGE_KEY の誤記を STORAGE に修正
+- Service Workerをv70へ更新
+- もし別の描画エラーが残る場合はランキング欄にエラー内容を表示
+
+最新成績・守備適性・投手能力・総合値バランスは維持。
