@@ -228,7 +228,7 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
   <button id="exitReadonlyMode" type="button">本体へ戻る</button>
 </div>
 
-<header class="header"><h1>草野球AI査定</h1><div class="version">Ver.68 完全再構築版</div></header>
+<header class="header"><h1>草野球AI査定</h1><div class="version">Ver.69 Safari表示完全修正版</div></header>
 <section class="top-actions">
 <button id="addPlayer">＋選手</button><button id="deletePlayer">選手削除</button><button id="applySeason">29選手反映</button><button id="smartImportTop">SmartScorer</button><button id="saveJson">JSON保存</button><button id="shareData">編集用データ共有</button><button id="shareReadonlyLink">閲覧リンク共有</button><button id="shareReadonly">閲覧パック共有</button><button id="openReadonlyPack">閲覧パックを開く</button><button id="teamPageBtn">チーム分析</button><button id="bestNineBtn">AIベストナイン</button><button id="loadJson">JSON読込</button>
 </section>
@@ -286,7 +286,7 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
   <button id="downloadBackup">共有できない場合：JSONを保存</button>
   <div class="share-note">iPhoneではLINE、メール、AirDrop、ファイル保存などを選べます。</div>
 <div class="readonly-link-box" id="readonlyLinkBox" hidden>
-  <label>作成した閲覧専用リンク</label><div class="link-warning">Ver.68 完全再構築版</div>
+  <label>作成した閲覧専用リンク</label><div class="link-warning">Ver.69 Safari表示完全修正版</div>
   <textarea id="readonlyLinkText" readonly></textarea>
   <button id="copyReadonlyLink" type="button">リンクをコピー</button><button id="testReadonlyLink" type="button">この端末でリンクを確認</button>
 </div>
@@ -345,6 +345,77 @@ body.readonly-mode #exitReadonlyMode{pointer-events:auto;opacity:1}
 <div class="bottom"><div class="bottom-inner"><button data-go="#detailCard">選手</button><button data-go=".abilities">能力</button><button data-go=".field">守備</button><button data-go="#rankingCard">順位</button><button data-go=".top-actions">メニュー</button></div></div>
 <input id="jsonFile" type="file" accept=".json,application/json" hidden><input id="readonlyPackFile" type="file" accept=".ksp,application/octet-stream,application/json" hidden><input id="smartPdfFile" type="file" accept=".pdf,application/pdf" hidden>
 <script>
+/* Ver.69: iOS Safari DOM bindings — do not rely on id-to-global behavior */
+var abilities=document.getElementById("abilities");
+var addPlayer=document.getElementById("addPlayer");
+var aiAssess=document.getElementById("aiAssess");
+var applySeason=document.getElementById("applySeason");
+var batHand=document.getElementById("batHand");
+var batImg=document.getElementById("batImg");
+var bestNineBtn=document.getElementById("bestNineBtn");
+var bestNineCard=document.getElementById("bestNineCard");
+var bestNineDH=document.getElementById("bestNineDH");
+var bestNineList=document.getElementById("bestNineList");
+var bestNineStyle=document.getElementById("bestNineStyle");
+var copyReadonlyLink=document.getElementById("copyReadonlyLink");
+var deletePlayer=document.getElementById("deletePlayer");
+var detailCard=document.getElementById("detailCard");
+var downloadBackup=document.getElementById("downloadBackup");
+var exitReadonlyMode=document.getElementById("exitReadonlyMode");
+var field=document.getElementById("field");
+var generateBestNine=document.getElementById("generateBestNine");
+var gradeEditor=document.getElementById("gradeEditor");
+var handText=document.getElementById("handText");
+var jsonFile=document.getElementById("jsonFile");
+var loadJson=document.getElementById("loadJson");
+var mainPosition=document.getElementById("mainPosition");
+var mainText=document.getElementById("mainText");
+var note=document.getElementById("note");
+var openReadonlyPack=document.getElementById("openReadonlyPack");
+var openReadonlyPackMain=document.getElementById("openReadonlyPackMain");
+var overallGrade=document.getElementById("overallGrade");
+var overallNum=document.getElementById("overallNum");
+var playerStrip=document.getElementById("playerStrip");
+var poseBat=document.getElementById("poseBat");
+var poseThrow=document.getElementById("poseThrow");
+var rankGuide=document.getElementById("rankGuide");
+var rankList=document.getElementById("rankList");
+var rankTabs=document.getElementById("rankTabs");
+var rankingCard=document.getElementById("rankingCard");
+var readonlyLinkBox=document.getElementById("readonlyLinkBox");
+var readonlyLinkText=document.getElementById("readonlyLinkText");
+var readonlyModeBanner=document.getElementById("readonlyModeBanner");
+var readonlyPackFile=document.getElementById("readonlyPackFile");
+var saveAbilities=document.getElementById("saveAbilities");
+var saveJson=document.getElementById("saveJson");
+var saveState=document.getElementById("saveState");
+var scoutComment=document.getElementById("scoutComment");
+var scoutCommentCard=document.getElementById("scoutCommentCard");
+var shareCard=document.getElementById("shareCard");
+var shareData=document.getElementById("shareData");
+var shareDataMain=document.getElementById("shareDataMain");
+var sharePlayerCard=document.getElementById("sharePlayerCard");
+var shareReadonly=document.getElementById("shareReadonly");
+var shareReadonlyLink=document.getElementById("shareReadonlyLink");
+var shareReadonlyLinkMain=document.getElementById("shareReadonlyLinkMain");
+var shareReadonlyMain=document.getElementById("shareReadonlyMain");
+var smartImportCard=document.getElementById("smartImportCard");
+var smartImportTop=document.getElementById("smartImportTop");
+var smartPdfButton=document.getElementById("smartPdfButton");
+var smartPdfFile=document.getElementById("smartPdfFile");
+var smartStatus=document.getElementById("smartStatus");
+var smartText=document.getElementById("smartText");
+var smartTextButton=document.getElementById("smartTextButton");
+var statsGrid=document.getElementById("statsGrid");
+var teamAnalysisCard=document.getElementById("teamAnalysisCard");
+var teamAnalysisComment=document.getElementById("teamAnalysisComment");
+var teamAnalysisGrid=document.getElementById("teamAnalysisGrid");
+var teamPageBtn=document.getElementById("teamPageBtn");
+var testReadonlyLink=document.getElementById("testReadonlyLink");
+var throwHand=document.getElementById("throwHand");
+var throwImg=document.getElementById("throwImg");
+var viewerGuideCard=document.getElementById("viewerGuideCard");
+
 
 function overallCompetitionRows(sortedRows,getScore){
   const ranked=competitionRanksByScore(sortedRows,getScore);
@@ -922,7 +993,7 @@ async function openReadonlyFile(file){
     enterReadonlyMode(pack);
   }catch(error){
     console.error(error);
-    alert("閲覧専用パックを開けませんでした。Ver.68 完全再構築版");
+    alert("閲覧専用パックを開けませんでした。Ver.69 Safari表示完全修正版");
   }
 }
 
@@ -1001,7 +1072,7 @@ sharePlayerCard.onclick=()=>{
 document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>document.querySelector(b.dataset.go)?.scrollIntoView({behavior:"smooth"}));
 window.addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue=""}});
 save();render();
-if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js?v=48").catch(()=>{});
+if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js?v=69").catch(()=>{});
 
 (function(){
   const CLEAN_KEY="v51_registered_players_only_cleanup";
