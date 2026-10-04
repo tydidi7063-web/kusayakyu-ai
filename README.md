@@ -1,23 +1,19 @@
-# 草野球AI査定 Ver.70 描画停止修正版
+# 草野球AI査定 Ver.71 calc復旧修正版
 
-今回、render() が止まる具体的な箇所を特定して修正。
+Ver.70の画面診断で表示された
+`ReferenceError: Can't find variable: calc`
+をコード上で確認し、欠落していた calc(p) を復旧しました。
 
-原因:
-Ver.69のDOM自動バインド処理が、parseSmartText() 内にある
-`let number` と `const name` を見て、HTMLの #number / #name は
-既に宣言済みだと誤判定していた。
+calc(p) は以下を計算する共通関数です:
+- 打率 AVG
+- 出塁率 OBP
+- 長打率 SLG
+- OPS
+- 塁打 TB
 
-しかし render() では
-number.value = ...
-name.value = ...
-を実行するため、ここでJavaScriptが停止。
-その直後にある打撃成績、守備適性、ランキングの描画まで到達していなかった。
+この関数は打撃成績、AI査定、スカウトコメント、
+チーム内ランキング等から共通して呼ばれていたため、
+欠落するとrender()途中で停止していました。
 
-修正:
-- #number を明示的に document.getElementById("number") で取得
-- #name を明示的に document.getElementById("name") で取得
-- 末尾に残っていた STORAGE_KEY の誤記を STORAGE に修正
-- Service Workerをv70へ更新
-- もし別の描画エラーが残る場合はランキング欄にエラー内容を表示
-
-最新成績・守備適性・投手能力・総合値バランスは維持。
+Ver.70で直した #number / #name DOM取得、STORAGE修正、
+最新成績・守備適性・投手能力・総合値バランスも維持しています。
